@@ -89,98 +89,103 @@ def train_random_forest():
 
     print("Memulai MLflow Run...")
     # Anda bisa memberi nama pada run CI jika mau
-    with mlflow.start_run(run_name="CI_Retraining_Run") as run:
-        run_id = run.info.run_id
-        print(f"MLflow Run ID: {run_id}")
-        mlflow.set_tag("Model_Type", "RandomForest_CI")
-        mlflow.set_tag("Run_Context", "GitHub_Actions_CI")
+    active_run = mlflow.active_run()
+    if active_run:
+        run_id = active_run.info.run_id
+        print(f"Menggunakan MLflow Run ID yang sudah ada: {run_id}")
+    else:
+        print("Peringatan: Tidak ada MLflow run aktif. Logging mungkin tidak bekerja seperti yang diharapkan.")
+
+    mlflow.set_tag("Model_Type", "RandomForest_CI")
+    mlflow.set_tag("Run_Context", "GitHub_Actions_CI")
 
 
-        print("Melakukan RandomizedSearchCV...")
-        rf = RandomForestClassifier(random_state=42)
-        random_search = RandomizedSearchCV(estimator=rf, param_distributions=param_dist, 
-                                           n_iter=10, cv=2, verbose=1, # Kurangi n_iter dan cv untuk CI
-                                           random_state=42, n_jobs=-1, scoring='accuracy')
-        random_search.fit(X_train, y_train)
-        print("RandomizedSearchCV selesai.")
+    print("Melakukan RandomizedSearchCV...")
+    rf = RandomForestClassifier(random_state=42)
+    random_search = RandomizedSearchCV(estimator=rf, param_distributions=param_dist, 
+                                        n_iter=10, cv=2, verbose=1, # Kurangi n_iter dan cv untuk CI
+                                        random_state=42, n_jobs=-1, scoring='accuracy')
+    random_search.fit(X_train, y_train)
+    print("RandomizedSearchCV selesai.")
 
-        best_model = random_search.best_estimator_
-        best_params = random_search.best_params_
-        print(f"Parameter Terbaik: {best_params}")
+    best_model = random_search.best_estimator_
+    best_params = random_search.best_params_
+    print(f"Parameter Terbaik: {best_params}")
 
-        print("Melakukan Manual Logging...")
-        mlflow.log_params(best_params)
+    print("Melakukan Manual Logging...")
+    mlflow.log_params(best_params)
 
-        predictions = best_model.predict(X_test)
-        
-        accuracy = accuracy_score(y_test, predictions)
-        f1 = f1_score(y_test, predictions)
-        precision = precision_score(y_test, predictions)
-        recall = recall_score(y_test, predictions)
-        
-        print(f"Akurasi Test: {accuracy:.4f}")
+    predictions = best_model.predict(X_test)
+    
+    accuracy = accuracy_score(y_test, predictions)
+    f1 = f1_score(y_test, predictions)
+    precision = precision_score(y_test, predictions)
+    recall = recall_score(y_test, predictions)
+    
+    print(f"Akurasi Test: {accuracy:.4f}")
 
-        mlflow.log_metric("accuracy", accuracy)
-        mlflow.log_metric("f1_score", f1)
-        mlflow.log_metric("precision", precision)
-        mlflow.log_metric("recall", recall)
-        mlflow.log_metric("best_cv_score", random_search.best_score_)
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_metric("f1_score", f1)
+    mlflow.log_metric("precision", precision)
+    mlflow.log_metric("recall", recall)
+    mlflow.log_metric("best_cv_score", random_search.best_score_)
 
-        print("Menambahkan Logging Kustom...")
-        # Log Confusion Matrix sebagai Gambar
-        cm = confusion_matrix(y_test, predictions)
-        plt.figure(figsize=(8, 6))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-                    xticklabels=best_model.classes_, yticklabels=best_model.classes_)
-        plt.title('Confusion Matrix')
-        plt.xlabel('Predicted')
-        plt.ylabel('Actual')
-        cm_path = "confusion_matrix.png" # Akan disimpan di root run MLflow
-        plt.savefig(cm_path)
-        plt.close()
-        mlflow.log_artifact(cm_path, "plots")
-        print(f"Confusion Matrix disimpan dan di-log.")
+    print("Menambahkan Logging Kustom...")
+    # Log Confusion Matrix sebagai Gambar
+    cm = confusion_matrix(y_test, predictions)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                xticklabels=best_model.classes_, yticklabels=best_model.classes_)
+    plt.title('Confusion Matrix')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    cm_path = "confusion_matrix.png" # Akan disimpan di root run MLflow
+    plt.savefig(cm_path)
+    plt.close()
+    mlflow.log_artifact(cm_path, "plots")
+    print(f"Confusion Matrix disimpan dan di-log.")
 
-        # Log Classification Report sebagai File Teks
-        report_text = classification_report(y_test, predictions, target_names=[str(c) for c in best_model.classes_])
-        # Simpan ke file lalu log, atau log teks langsung jika MLflow versi baru mendukung
-        report_path = "classification_report.txt" 
-        with open(report_path, "w") as f:
-            f.write(report_text)
-        mlflow.log_artifact(report_path)
-        print(f"Classification Report disimpan dan di-log.")
-        
-        # Log Feature Importances Plot
-        importances = best_model.feature_importances_
-        feature_names = X_train.columns
-        feature_importances_series = pd.Series(importances, index=feature_names).sort_values(ascending=False)
-        
-        plt.figure(figsize=(10, 8))
-        sns.barplot(x=feature_importances_series.head(15), y=feature_importances_series.head(15).index)
-        plt.title('Top 15 Feature Importances')
-        plt.xlabel('Importance')
-        plt.ylabel('Features')
-        plt.tight_layout()
-        fi_path = "feature_importances.png"
-        plt.savefig(fi_path)
-        plt.close()
-        mlflow.log_artifact(fi_path, "plots")
-        print(f"Feature Importances disimpan dan di-log.")
+    # Log Classification Report sebagai File Teks
+    report_text = classification_report(y_test, predictions, target_names=[str(c) for c in best_model.classes_])
+    # Simpan ke file lalu log, atau log teks langsung jika MLflow versi baru mendukung
+    report_path = "classification_report.txt" 
+    with open(report_path, "w") as f:
+        f.write(report_text)
+    mlflow.log_artifact(report_path)
+    print(f"Classification Report disimpan dan di-log.")
+    
+    # Log Feature Importances Plot
+    importances = best_model.feature_importances_
+    feature_names = X_train.columns
+    feature_importances_series = pd.Series(importances, index=feature_names).sort_values(ascending=False)
+    
+    plt.figure(figsize=(10, 8))
+    sns.barplot(x=feature_importances_series.head(15), y=feature_importances_series.head(15).index)
+    plt.title('Top 15 Feature Importances')
+    plt.xlabel('Importance')
+    plt.ylabel('Features')
+    plt.tight_layout()
+    fi_path = "feature_importances.png"
+    plt.savefig(fi_path)
+    plt.close()
+    mlflow.log_artifact(fi_path, "plots")
+    print(f"Feature Importances disimpan dan di-log.")
 
-        # Log Model Terbaik
-        # Tambahkan signature dan input example untuk praktik terbaik
-        signature = infer_signature(X_train, best_model.predict(X_train))
-        input_example = X_train.head()
+    # Log Model Terbaik
+    # Tambahkan signature dan input example untuk praktik terbaik
+    signature = infer_signature(X_train, best_model.predict(X_train))
+    input_example = X_train.head()
 
-        mlflow.sklearn.log_model(
-            sk_model=best_model,
-            artifact_path="best_random_forest_model_ci", # Beri nama berbeda untuk CI
-            signature=signature,
-            input_example=input_example
-        )
-        print("Manual Logging selesai.")
+    mlflow.sklearn.log_model(
+        sk_model=best_model,
+        artifact_path="best_random_forest_model_ci", # Beri nama berbeda untuk CI
+        signature=signature,
+        input_example=input_example
+    )
+    print("Manual Logging selesai.")
 
-    print(f"MLflow Run {run_id} selesai. Akan ada di folder mlruns di runner.")
+    if active_run: # Cek lagi sebelum mencetak
+        print(f"MLflow Run {run_id} selesai. Akan ada di folder mlruns di runner.")
 
 # --- Jalankan Fungsi ---
 if __name__ == "__main__":
