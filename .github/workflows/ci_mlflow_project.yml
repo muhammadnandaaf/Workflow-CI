@@ -3,7 +3,7 @@ name: MLflow Project CI
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'MLProject_LoanApproval/**'
 
