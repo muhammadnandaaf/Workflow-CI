@@ -38,14 +38,16 @@ from sklearn.metrics import confusion_matrix, classification_report
 # --- Set Eksperimen MLflow untuk Pelacakan Lokal (di Runner CI) ---
 MLFLOW_EXPERIMENT_NAME_LOCAL = "CI_Loan_Approval_RF" 
 try:
-    mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME_LOCAL)
-except mlflow.exceptions.MlflowException:
-    # Jika experiment sudah ada dan di-delete, set_experiment bisa error, coba create
-    mlflow.create_experiment(MLFLOW_EXPERIMENT_NAME_LOCAL)
-    mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME_LOCAL)
+    experiment_id = mlflow.create_experiment(MLFLOW_EXPERIMENT_NAME_LOCAL)
+    print(f"Eksperimen MLflow '{MLFLOW_EXPERIMENT_NAME_LOCAL}' dibuat dengan ID: {experiment_id}")
+except mlflow.exceptions.MlflowException as e:
+    if "already exists" in str(e).lower(): # Periksa apakah error karena sudah ada
+        print(f"Eksperimen MLflow '{MLFLOW_EXPERIMENT_NAME_LOCAL}' sudah ada.")
+        mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME_LOCAL)
+    else:
+        raise # Lemparkan error lain jika bukan karena sudah ada
 print(f"Eksperimen MLflow lokal diset ke: {MLFLOW_EXPERIMENT_NAME_LOCAL}")
 # --- Akhir Set Eksperimen MLflow Lokal ---
-
 
 # --- Fungsi Pemuatan Data ---
 def load_data(train_path, test_path):
@@ -88,17 +90,12 @@ def train_random_forest():
     }
 
     print("Memulai MLflow Run...")
-    # Anda bisa memberi nama pada run CI jika mau
-    active_run = mlflow.active_run()
-    if active_run:
-        run_id = active_run.info.run_id
-        print(f"Menggunakan MLflow Run ID yang sudah ada: {run_id}")
-    else:
-        print("Peringatan: Tidak ada MLflow run aktif. Logging mungkin tidak bekerja seperti yang diharapkan.")
+    current_run_id = mlflow.active_run().info.run_id if mlflow.active_run() else "Tidak_Terdeteksi_Dalam_Script"
+    print(f"MLflow Run ID aktif: {current_run_id}")
 
     mlflow.set_tag("Model_Type", "RandomForest_CI")
     mlflow.set_tag("Run_Context", "GitHub_Actions_CI")
-
+    mlflow.set_tag("mlflow.runName", "CI_RF_Training_Run")
 
     print("Melakukan RandomizedSearchCV...")
     rf = RandomForestClassifier(random_state=42)
