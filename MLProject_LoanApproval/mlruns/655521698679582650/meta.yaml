@@ -1,0 +1,6 @@
+artifact_location: file:///home/runner/work/Workflow-CI/Workflow-CI/MLProject_LoanApproval/mlruns/655521698679582650
+creation_time: 1748608267858
+experiment_id: '655521698679582650'
+last_update_time: 1748608267858
+lifecycle_stage: active
+name: CI_Loan_Approval_RF

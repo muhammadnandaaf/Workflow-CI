@@ -29,7 +29,7 @@ jobs:
           python-version: '3.10.16'
 
       - name: Install MLflow
-        run: pip install mlflow>2.22.0 scikit-learn pandas joblib # Tambahkan dependensi skrip
+        run: pip install mlflow>=2.22.0 scikit-learn pandas joblib # Tambahkan dependensi skrip
 
       - name: Run MLflow Project
         working-directory: ./MLProject_LoanApproval # Penting!
@@ -42,8 +42,28 @@ jobs:
         with:
           name: model-artifacts # Nama bundel artefak
           path: | # Path relatif terhadap working-directory (MLProject_LoanApproval)
-            MLProject_LoanApproval/mlruns/ 
+            MLProject_LoanApproval/mlruns/
             MLProject_LoanApproval/trained_model.pkl 
             MLProject_LoanApproval/metrics.txt
-          # Anda juga bisa mengunggah folder mlruns jika modelling.py menggunakan MLflow logging
-          # path: mlruns/
+            MLProject_LoanApproval/confusion_matrix.png
+            MLProject_LoanApproval/classification_report.txt
+            MLProject_LoanApproval/feature_importances.png
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3 # Gunakan versi terbaru
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3 # Gunakan versi terbaru
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5 # Gunakan versi terbaru
+        with:
+          context: ./MLProject_LoanApproval # Direktori yang berisi Dockerfile dan kode proyek
+          file: ./MLProject_LoanApproval/Dockerfile # Path ke Dockerfile
+          push: true # Set true untuk push ke registry
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/loan-approval-project:msml-dicoding
+          # Format: username_dockerhub/nama_image:tag
+          # Sesuaikan nama_image dengan keinginan Anda
