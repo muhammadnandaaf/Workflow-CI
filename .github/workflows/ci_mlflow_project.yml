@@ -6,10 +6,13 @@ on:
       - master
     paths:
       - 'MLProject_LoanApproval/**'
+      - '.github/workflows/**'
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: ./MLProject_LoanApproval # Penting!
