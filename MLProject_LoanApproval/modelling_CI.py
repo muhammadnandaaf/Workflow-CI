@@ -18,37 +18,6 @@ import mlflow.sklearn
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.metrics import confusion_matrix, classification_report
 
-# # --- Konfigurasi DagsHub ---
-# # Ganti dengan informasi Anda
-# DAGSHUB_REPO_NAME = 'model_buildingExp' # Sesuaikan dengan nama repo DagsHub Anda
-# DAGSHUB_USERNAME = 'muhammadnandaaf' # Sesuaikan dengan username DagsHub Anda
-
-# # Inisialisasi DagsHub, ini akan otomatis mengkonfigurasi MLflow jika mlflow=True
-# print("Menginisialisasi DagsHub...")
-# dagshub.init(DAGSHUB_REPO_NAME, DAGSHUB_USERNAME, mlflow=True)
-# print(f"DagsHub diinisialisasi untuk repo: {DAGSHUB_USERNAME}/{DAGSHUB_REPO_NAME}")
-# print(f"MLflow Tracking URI sekarang seharusnya otomatis diatur ke DagsHub.")
-
-# # Set Eksperimen MLflow (nama eksperimen Anda)
-# MLFLOW_EXPERIMENT_NAME = "Loan_Approval_RF_Advanced" 
-# mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-# print(f"Eksperimen MLflow diset ke: {MLFLOW_EXPERIMENT_NAME}")
-# # --- Akhir Konfigurasi DagsHub ---
-
-# --- Set Eksperimen MLflow untuk Pelacakan Lokal (di Runner CI) ---
-MLFLOW_EXPERIMENT_NAME_LOCAL = "CI_Loan_Approval_RF" 
-try:
-    experiment_id = mlflow.create_experiment(MLFLOW_EXPERIMENT_NAME_LOCAL)
-    print(f"Eksperimen MLflow '{MLFLOW_EXPERIMENT_NAME_LOCAL}' dibuat dengan ID: {experiment_id}")
-except mlflow.exceptions.MlflowException as e:
-    if "already exists" in str(e).lower(): # Periksa apakah error karena sudah ada
-        print(f"Eksperimen MLflow '{MLFLOW_EXPERIMENT_NAME_LOCAL}' sudah ada.")
-        mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME_LOCAL)
-    else:
-        raise # Lemparkan error lain jika bukan karena sudah ada
-print(f"Eksperimen MLflow lokal diset ke: {MLFLOW_EXPERIMENT_NAME_LOCAL}")
-# --- Akhir Set Eksperimen MLflow Lokal ---
-
 # --- Fungsi Pemuatan Data ---
 def load_data(train_path, test_path):
     print("Memuat data...")

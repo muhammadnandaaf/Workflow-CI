@@ -33,7 +33,7 @@ jobs:
 
       - name: Run MLflow Project
         working-directory: ./MLProject_LoanApproval # Penting!
-        run: mlflow run . 
+        run: mlflow run . --experiment-name "CI_Loan_Approval_RF" 
         # Jika modelling.py di atas membuat trained_model.pkl dan metrics.txt
         # di dalam MLProject_LoanApproval di runner
 
