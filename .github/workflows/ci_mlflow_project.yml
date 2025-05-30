@@ -24,7 +24,7 @@ jobs:
           python-version: '3.10.16'
 
       - name: Install MLflow
-        run: pip install mlflow>=1.20 scikit-learn pandas joblib # Tambahkan dependensi skrip
+        run: pip install mlflow>2.22.0 scikit-learn pandas joblib # Tambahkan dependensi skrip
 
       - name: Run MLflow Project
         run: mlflow run . 
@@ -32,7 +32,7 @@ jobs:
         # di dalam MLProject_LoanApproval di runner
 
       - name: Archive training artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 
         with:
           name: model-artifacts # Nama bundel artefak
           path: | # Path relatif terhadap working-directory (MLProject_LoanApproval)
