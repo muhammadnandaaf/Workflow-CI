@@ -181,8 +181,7 @@ def train_random_forest():
     )
     print("Manual Logging selesai.")
 
-    if active_run: # Cek lagi sebelum mencetak
-        print(f"MLflow Run {run_id} selesai. Akan ada di folder mlruns di runner.")
+    print(f"MLflow Run {current_run_id} selesai. Akan ada di folder mlruns di runner.")
 
 # --- Jalankan Fungsi ---
 if __name__ == "__main__":
