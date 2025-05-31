@@ -9,4 +9,13 @@ RUN conda env create -f conda.yaml
 
 COPY . .
 
-# RUN pip install --no-cache-dir mlflow>=2.22.0 pandas scikit-learn joblib numpy matplotlib seaborn cloudpickle==3.1.1 psutil==7.0.0 scipy==1.15.2
+COPY model.pkl /app/model.pkl 
+COPY app_serving_for_docker.py /app/app_serving_for_docker.py
+COPY preprocessing_dataset/train_pca.csv /app/train_pca.csv
+
+RUN pip install --no-cache-dir Flask joblib pandas prometheus_client scikit-learn numpy gunicorn
+
+EXPOSE 5001
+EXPOSE 8000
+
+CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:5001", "app_serving:app"]
