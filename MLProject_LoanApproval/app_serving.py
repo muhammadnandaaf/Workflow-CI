@@ -57,6 +57,17 @@ PREDICTIONS_BY_CLASS_TOTAL = Counter(
     ['predicted_class'] # Label untuk kelas yang diprediksi
 )
 
+# --- MULAI SERVER METRIK PROMETHEUS (DI LUAR if __name__ == '__main__') ---
+METRICS_PORT = 8000
+try:
+    start_http_server(METRICS_PORT)
+    print(f"--- Server Prometheus metrics BERHASIL dimulai di port {METRICS_PORT} (endpoint: /metrics) ---")
+except OSError as e:
+    print(f"--- KRITIKAL: Gagal memulai server Prometheus metrics (port {METRICS_PORT}): {e}. Pastikan port tidak digunakan oleh Gunicorn atau proses lain di dalam container. ---")
+except Exception as e:
+    print(f"--- KRITIKAL: Error tidak diketahui saat memulai server Prometheus metrics: {e} ---")
+# --- AKHIR MULAI SERVER METRIK PROMETHEUS ---
+
 # --- MUAT MODEL DARI DALAM IMAGE DOCKER ---
 # Asumsi di Dockerfile Kriteria 3, model disalin ke /app/model.pkl
 MODEL_PATH = "/app/model.pkl" 
@@ -154,12 +165,6 @@ def predict():
         return jsonify({'error': f'Kesalahan prediksi: {str(e)}'}), 400
 
 if __name__ == '__main__':
-    try:
-        start_http_server(8000) # Server Prometheus metrics
-        print("Server Prometheus metrics berjalan di http://localhost:8000/metrics")
-    except OSError as e:
-        print(f"Gagal memulai server Prometheus metrics (port 8000): {e}. Pastikan port tidak digunakan.")
-
     print("Menjalankan aplikasi Flask serving model di http://localhost:5001 ...")
     # Untuk Docker, Flask dev server cukup. Untuk produksi nyata, Gunicorn lebih baik.
     app.run(host='0.0.0.0', port=5001, debug=False)
