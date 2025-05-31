@@ -2,6 +2,7 @@ import os
 import numpy as np
 import warnings
 import sys
+import joblib
 # import dagshub
 
 import pandas as pd
@@ -149,6 +150,11 @@ def train_random_forest():
         input_example=input_example
     )
     print("Manual Logging selesai.")
+
+    # Simpan model juga secara manual untuk Dockerfile
+    docker_model_filename = "model.pkl" # Gunakan nama ini di Dockerfile
+    joblib.dump(best_model, docker_model_filename)
+    print(f"Model disimpan secara manual sebagai: {docker_model_filename} untuk Docker.")
 
     print(f"MLflow Run {current_run_id} selesai. Akan ada di folder mlruns di runner.")
 
