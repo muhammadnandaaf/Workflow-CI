@@ -10,7 +10,7 @@ RUN conda env create -f conda.yaml
 COPY . .
 
 COPY model.pkl /app/model.pkl 
-COPY app_serving_for_docker.py /app/app_serving_for_docker.py
+COPY app_serving.py /app/app_serving.py
 COPY preprocessing_dataset/train_pca.csv /app/train_pca.csv
 
 RUN pip install --no-cache-dir Flask joblib pandas prometheus_client scikit-learn numpy gunicorn
